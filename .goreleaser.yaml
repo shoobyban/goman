@@ -1,0 +1,45 @@
+version: 2
+
+project_name: goman
+
+builds:
+  - id: goman
+    main: .
+    binary: goman
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - src: internal/gocui/LICENSE
+        dst: licenses/gocui/LICENSE
+      - src: internal/gocui/AUTHORS
+        dst: licenses/gocui/AUTHORS
+      - src: internal/gocui/UPSTREAM.md
+        dst: licenses/gocui/UPSTREAM.md
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  name_template: "goman {{ .Tag }}"

@@ -10,15 +10,17 @@ import (
 	"goman/internal/tui"
 )
 
+var version = "0.1.0"
+
 func main() {
 	workspace := flag.String("workspace", ".", "workspace containing .goman collections (imports legacy .ghostman data)")
 	address := flag.String("webhook-address", "127.0.0.1:9090", "webhook listen address")
 	timeout := flag.Duration("timeout", 15*time.Second, "HTTP request timeout")
 	insecure := flag.Bool("insecure", false, "disable TLS certificate verification")
-	version := flag.Bool("version", false, "print version")
+	showVersion := flag.Bool("version", false, "print version")
 	flag.Parse()
-	if *version {
-		fmt.Println("goman 0.1.0")
+	if *showVersion {
+		fmt.Printf("goman %s\n", version)
 		return
 	}
 	if *timeout <= 0 {

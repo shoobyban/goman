@@ -155,3 +155,18 @@ goman is a Go reimplementation derived from [Ghostman](https://github.com/4yk5/g
 The terminal UI contains an internal copy of the customized [gocui](https://github.com/jesseduffield/gocui) code supplied with [lazygit](https://github.com/jesseduffield/lazygit). There is no lazygit module dependency. Original authors and provenance are recorded in [internal/gocui/UPSTREAM.md](internal/gocui/UPSTREAM.md). Syntax highlighting uses [Chroma](https://github.com/alecthomas/chroma).
 
 goman is released under the [MIT License](LICENSE), retaining the original `Copyright (c) 2026 4yk5` notice. The internal gocui package retains its [BSD-3-Clause license](internal/gocui/LICENSE). Binary distributions must include both license notices.
+
+## Releases
+
+Prebuilt binaries are published on [GitHub Releases](https://github.com/shoobyban/goman/releases) for macOS, Linux, and Windows, on amd64 and arm64. Unix downloads use `.tar.gz`; Windows downloads use `.zip`. Each archive includes the application and gocui license notices. Use the release's `checksums.txt` to verify downloads.
+
+To publish version 0.1.0, first commit and push the release configuration and application changes, then tag that commit:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The CI and Release workflow runs formatting checks, vet, race tests, and a build on pull requests and pushes to `main`. Version-tag pushes run the same checks before GoReleaser builds all six archives and publishes the GitHub release with checksums. Only the publishing job has repository write permission; it uses the built-in `GITHUB_TOKEN`, with no additional release secret required.
+
+The CLI's `--version` output is set from the release tag. Local builds default to `0.1.0`. Generated release files live in the ignored `dist` directory.
