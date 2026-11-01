@@ -1,0 +1,33 @@
+- name: General API Tests
+  requests:
+    - name: Fetch Sample Post
+      method: GET
+      url: https://jsonplaceholder.typicode.com/posts/1
+      headers:
+        Accept: application/json
+      body: ""
+    - name: Create Post (JSON)
+      method: POST
+      url: https://jsonplaceholder.typicode.com/posts
+      headers:
+        Content-Type: application/json
+      body: |-
+        {
+          "title": "Ghostman Test",
+          "body": "Fast TUI API client",
+          "userId": 42
+        }
+    - name: GitHub Public User
+      method: GET
+      url: https://api.github.com/users/octocat
+      headers:
+        User-Agent: Ghostman
+      body: ""
+    - name: GET 1
+      method: GET
+      url: https://jsonplaceholder.typicode.com/posts/1
+      headers: {}
+      body: |-
+        {
+          "hello": "world"
+        }
