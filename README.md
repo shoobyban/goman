@@ -1,29 +1,39 @@
 # goman
 
-A local-first terminal HTTP client and webhook inspector, written in Go. No account or hosted service is required.
+An HTTP client and webhook inspector for your terminal, written in Go. Send requests, inspect responses, and keep collections in your project directory. No account or hosted service needed.
 
-## Features
+[Install a release](#installation) or [build from source](#build-and-run).
 
-- Compose GET, POST, PUT, PATCH, and DELETE requests with editable JSON headers and payloads.
-- Inspect response headers, status, latency, size, and syntax-highlighted JSON, XML/HTML, or YAML.
-- Save and load local collections in YAML and JSON.
-- Receive webhooks locally, browse payload previews, and load captured requests into the editor.
-- Use keyboard navigation, field-local mouse selection, clipboard copying, and configurable shortcuts.
-- See transient action notifications and confirm before quitting.
+## Demo
+
+[![goman sending a local HTTP request, inspecting a webhook, and loading it for replay](docs/media/goman.gif)](docs/media/goman.cast)
+
+[Download the asciinema recording](docs/media/goman.cast), or play it from this checkout with `asciinema play docs/media/goman.cast`. The demo uses a local shop API and sample data.
+
+## Screenshots
+
+HTTP response with status, headers, and a formatted JSON body:
+
+![goman displaying a successful order response from a local API](docs/media/response.png)
+
+A captured order-shipped webhook, ready to load into the request editor:
+
+![goman displaying the local webhook receiver and a captured order-shipped event](docs/media/webhooks.png)
+
+## What It Does
+
+- Edit request URLs, methods, JSON headers, and bodies. The method menu offers GET, POST, PUT, PATCH, and DELETE.
+- Inspect status codes, response headers, timing, and size, with syntax highlighting for JSON, XML/HTML, and YAML.
+- Save requests as local YAML and JSON collections.
+- Capture webhooks and load them into the editor for replay.
+- Navigate by keyboard, scroll and select text with the mouse, or copy a field to the clipboard.
+
+Shortcuts can be changed for the current session. Actions show brief notifications, and quitting asks for confirmation.
 
 ## Build and Run
 
-Requires Go 1.26 or newer and a terminal at least 80 columns by 22 rows. The customized terminal UI library is included in `internal/gocui`; no lazygit checkout, `_ext` directory, or local module replacement is needed.
+Building requires Go 1.26 or newer. To use goman, you'll need a terminal at least 80 columns wide and 22 rows tall. The terminal UI library is bundled in `internal/gocui`; you don't need a lazygit checkout or any local module replacements.
 
-```text
-goman/
-  go.mod
-  main.go
-  internal/
-    gocui/
-    goman/
-    tui/
-```
 
 From the repository root:
 
@@ -38,9 +48,9 @@ go build -o goman .
 ./goman
 ```
 
-On Windows, use `go build -o goman.exe .` and run `goman.exe`. The compiled executable needs neither Go nor source checkouts at runtime. The Python implementation and its tooling are no longer included.
+On Windows, build with `go build -o goman.exe .`, then run `goman.exe`. Once built, goman doesn't need Go or the source code to run. The old Python application and its tools are no longer included.
 
-Go resolves the remaining library dependencies through `go.mod` and `go.sum`. The internal gocui copy retains the customized mouse, editing, rendering, and simulation-screen behavior; see [its provenance and license notes](internal/gocui/UPSTREAM.md).
+Go downloads dependencies listed in `go.mod` and `go.sum`. The bundled gocui code includes the mouse, editing, rendering, and simulation-screen changes used by goman; see its [provenance notes](internal/gocui/UPSTREAM.md).
 
 ## Options
 
@@ -53,64 +63,72 @@ Go resolves the remaining library dependencies through `go.mod` and `go.sum`. Th
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `--workspace` | Current directory | Directory containing local collections |
-| `--webhook-address` | `127.0.0.1:9090` | Receiver address; starts offline |
-| `--timeout` | `15s` | Positive HTTP request timeout |
-| `--insecure` | Off | Disable TLS certificate verification |
-| `--version` | Off | Print the application version |
+| `--workspace` | Current directory | Where to store collections |
+| `--webhook-address` | `127.0.0.1:9090` | Address to use when you start the receiver |
+| `--timeout` | `15s` | Request timeout; must be positive |
+| `--insecure` | Off | Skip TLS certificate verification |
+| `--version` | Off | Print the version and exit |
 
-TLS certificates are verified by default. Use `--insecure` only for trusted development endpoints. The webhook receiver has no authentication or signature verification; binding a non-loopback address exposes it to other hosts.
+TLS verification is on by default. Use `--insecure` only for trusted development endpoints.
+
+The webhook receiver starts offline and has no authentication or signature verification. Binding it to a non-loopback address makes it reachable from other hosts.
 
 ## Controls
 
 | Key | Action |
 | --- | --- |
-| `Ctrl+S` | Send request and show the response |
+| `Ctrl+S` | Send the request |
 | `Ctrl+K` | Save the current request |
-| `Ctrl+N` | New request |
+| `Ctrl+N` | Start a new request |
 | `Ctrl+W` | Start or stop the webhook receiver |
 | `Escape` / `Ctrl+Q` | Open quit confirmation |
-| `F2` | Configure application shortcuts |
+| `F2` | Change shortcuts |
 | `Tab` / `Shift+Tab` | Move focus |
-| `Enter` | Activate a control or load a selected request |
-| `Ctrl+[` / `Ctrl+]` | Previous / next tab when reported as distinct Ctrl events |
+| `Enter` | Activate a control or load the selected request |
+| `Ctrl+[` / `Ctrl+]` | Previous / next tab, if your terminal reports distinct Ctrl events |
 | `Alt+1` / `Alt+2` / `Alt+3` | Body / Response / Live Webhooks |
 | `Ctrl+G` | Select all in the focused field |
-| `Ctrl+Shift+A` | Select all when the terminal reports Shift separately |
-| `Ctrl+C` | Copy selected field text |
-| `Ctrl+A` | Beginning of line in an editor |
+| `Ctrl+Shift+A` | Select all, if your terminal reports Shift separately |
+| `Ctrl+C` | Copy selected text |
+| `Ctrl+A` | Move to the beginning of the line in an editor |
 
-Click buttons and tabs to activate them. Open the method menu with a click, Enter, or Down; use arrows or the wheel to choose, then Enter or a click to commit. Clicking outside dismisses it without activating the control underneath.
+Buttons and tabs also work with the mouse. Open the method menu with a click, Enter, or Down. Choose with the arrows or scroll wheel, then press Enter or click to select. Clicking outside closes the menu without activating anything underneath.
 
-Scroll over a field to scroll only that field. Drag to select text within one field; typing replaces selected text in editors, and Backspace/Delete removes it. Selection excludes neighboring panes, borders, and labels. Read-only Select All copies the displayed preview, not undisplayed data.
+Scrolling affects the field under the pointer. Drag to select text within a field; typing replaces the selection, and Backspace or Delete removes it. Selections never include neighboring panes, borders, or labels. In a read-only field, Select All selects only the displayed preview.
 
-Escape opens quit confirmation from the main interface, including editors and the method menu. A second Escape cancels. Enter always accepts the positive quit action while confirmation is open; clicking Cancel also cancels. Background actions are blocked during dialogs.
+Escape opens quit confirmation even from an editor or the method menu. Press Enter to quit, or Escape again to cancel. You can also click Cancel. Other actions are blocked while a dialog is open.
 
 ### Terminal Compatibility
 
-Some macOS keyboards require Fn+F2. Alt-number shortcuts depend on terminal settings. Legacy terminals report Ctrl+[ as Escape, so it opens quit confirmation; use F2 to remap Previous tab if needed.
+On some macOS keyboards, use Fn+F2. Alt-number shortcuts depend on your terminal settings.
 
-Some terminals report Ctrl+Shift+A as Ctrl+A; use Ctrl+G for Select All instead. macOS Cmd+A is usually handled by the terminal application. An optional terminal key mapping can send Ctrl+G (`0x07`) to select the focused field in goman.
+Older terminals report Ctrl+[ as Escape, which opens quit confirmation. If that happens, use F2 to assign a different Previous tab shortcut. Likewise, some terminals report Ctrl+Shift+A as Ctrl+A; Ctrl+G is the reliable Select All shortcut. Cmd+A usually belongs to the terminal app. You can configure your terminal to send Ctrl+G (`0x07`) instead.
 
-### Shortcut Configuration
+Clipboard access, fonts, cell sizes, and modifier keys depend on your terminal and operating system.
 
-Press F2, select an action with arrows, the wheel, or a click, and press Enter to record a replacement key. Modified character keys and F1-F12 are supported; conflicts are rejected. Escape, Tab, Shift+Tab, Enter, and Ctrl+A are protected.
+### Changing Shortcuts
 
-Tab cycles through the list, Reset, Apply, and Cancel. Apply updates shortcuts immediately; Cancel discards the draft. Reset restores defaults in the draft and still requires Apply. Escape stops recording or closes the window. Changes are session-only, and replacing an action removes its previous aliases. Native navigation and plain typing are not remapped.
+Press F2, choose an action with the arrows, wheel, or mouse, then press Enter to record a new key. Modified character keys and F1-F12 are supported. Conflicts are rejected; Escape, Tab, Shift+Tab, Enter, and Ctrl+A are reserved.
 
-## Collections and Migration
+Tab moves between the list, Reset, Apply, and Cancel. Apply saves your changes for this session; Cancel discards them. Reset puts the defaults into the draft, so you still need to choose Apply. Escape stops recording or closes the dialog.
 
-Collections live in `.goman/collections.yaml` and `.goman/collections.json` beneath `--workspace`. YAML takes precedence; invalid YAML falls back to valid JSON. Empty collections are respected, and unreadable or corrupt data produces an error rather than silently restoring examples.
+Assigning a new key removes that action's old aliases. Normal typing and native editor navigation aren't remapped.
 
-If neither goman collection file exists, startup looks for legacy `.ghostman` collections in the same workspace and imports them into `.goman`. The original files remain untouched. Existing `.goman` files always take precedence, even if they are empty or invalid. With neither format present in either location, goman creates three example requests.
+## Collections
 
-Import preserves names, payloads, URLs, and headers exactly as stored, including any old product names in user data. New saves go only to `.goman`; later changes to the legacy files are not synchronized.
+Collections are stored under `--workspace` in `.goman/collections.yaml` and `.goman/collections.json`. YAML is read first; if it isn't valid, goman tries JSON. Empty collections stay empty. If neither file can be read successfully, goman reports an error instead of replacing your data with examples.
 
-Save appends to the first collection. Both formats use private file permissions and atomic replacement per file, but the pair is not a single transaction. Do not run multiple instances writing to the same workspace. Collection files may contain credentials: keep them out of version control unless reviewed.
+Save appends the current request to the first collection. Each file is replaced atomically with private permissions, but saving the pair isn't a single transaction. Don't run two instances that write to the same workspace. Collections can contain credentials, so review them before adding them to version control.
 
-## Webhook Inspection
+### Importing Ghostman Collections
 
-Start the receiver with Ctrl+W, then send a local request:
+If neither goman collection file exists, goman looks for `.ghostman` collections in the same workspace and imports them into `.goman`. It leaves the originals alone and preserves names, URLs, headers, and payloads exactly, including old product names in your data.
+
+Existing `.goman` files take precedence, even if they're empty or invalid. New saves go only to `.goman`; later edits to `.ghostman` aren't synced. If no collection files exist in either location, goman creates three example requests.
+
+## Webhooks
+
+Start the receiver with Ctrl+W, then send it a request:
 
 ```sh
 curl -X POST http://127.0.0.1:9090/webhook \
@@ -118,25 +136,33 @@ curl -X POST http://127.0.0.1:9090/webhook \
   -d '{"event":"example","value":42}'
 ```
 
-Each webhook row includes a single-line payload preview. Keyboard navigation or scrolling selects a capture for inspection. Clicking a row or pressing Enter loads its method and raw body into the editor, preserving the destination URL; only Content-Type and Accept headers are copied. Loading does not send the request. Borders and empty rows do not load a capture.
+Each capture shows a one-line body preview. Use the keyboard or scroll wheel to select a capture for inspection. Click its row or press Enter to load it into the editor. Borders and empty rows do nothing.
 
-The receiver responds with `{"status":"ok","source":"goman"}`. Captures stay in memory and disappear on exit. Clients relying on the former `source` value should be updated.
+Loading a capture copies its method, raw body, and Content-Type and Accept headers. Your destination URL stays unchanged, and nothing is sent until you choose Send.
 
-## Behavior and Limits
+The receiver replies with `{"status":"ok","source":"goman"}`. Update clients that depend on the old source value. Captures are kept in memory and disappear when you quit.
 
-- GET and HEAD omit the editor body; other methods send it. Methods loaded from collections or webhooks, including OPTIONS and custom methods, are preserved exactly until another method is selected. Valid JSON receives Content-Type automatically unless already set.
-- Redirects follow Go's standard HTTP behavior. HTTP error responses remain inspectable; network failures show their error.
-- An explicitly configured Host header overrides the HTTP host without changing the connection destination.
-- The default outgoing User-Agent is `goman/0.1.0`; an explicitly stored User-Agent is preserved.
-- Responses and incoming webhook bodies are limited to 4 MiB. History retains at most 200 captures and 8 MiB of raw plus formatted payload text.
-- JSON pretty-printing uses a conservative 4 MiB output budget checked before indentation. When formatting would exceed that budget, the original JSON is displayed instead.
-- Body previews are capped at 128 KiB with a truncation marker. Syntax highlighting processes at most the first 64 KiB without changing source values.
-- Webhook list snippets inspect at most 256 bytes and display up to 40 grapheme clusters.
-- Green/red HTTP status labels distinguish responses below 400 from errors. Notifications expire after two seconds or can be dismissed by clicking; they do not take keyboard focus.
-- Notifications cannot replace in-flight request telemetry and remain hidden behind dialogs or the method menu.
-- Bracketed paste inserts text without activating Send or other command bindings. Dialogs hide below the minimum terminal size and restore when space is available; quit confirmation remains keyboard-accessible.
+## Request Behavior
 
-Fonts, cell sizes, clipboard access, and modifier-key reporting depend on the terminal and operating system.
+GET and HEAD requests omit the editor body. Other methods send it. Methods loaded from collections or webhooks, including OPTIONS and custom methods, are kept exactly as stored until you select another method. Valid JSON gets a Content-Type header automatically if you haven't set one.
+
+Redirects follow Go's standard HTTP behavior. HTTP error responses can still be inspected; network failures show an error. Setting a Host header changes the HTTP host without changing the connection destination. The default User-Agent is `goman/0.1.0`, unless you've set your own.
+
+## Limits
+
+| Item | Limit |
+| --- | --- |
+| Response or incoming webhook body | 4 MiB |
+| Webhook history | 200 captures or 8 MiB of raw and formatted body text |
+| Displayed body preview | 128 KiB, followed by a truncation marker |
+| Syntax highlighting | First 64 KiB; stored values stay unchanged |
+| Webhook list preview | Reads up to 256 bytes; shows up to 40 grapheme clusters |
+
+JSON formatting checks a conservative 4 MiB output budget before adding indentation. If the result would be too large, goman shows the original JSON.
+
+Status labels are green below HTTP 400 and red for errors. Notifications disappear after two seconds or when clicked. They don't take focus, hide request progress, or appear over dialogs and the method menu.
+
+Bracketed paste inserts text without triggering Send or other shortcuts. If the terminal becomes too small, dialogs hide and return when there's room. Quit confirmation still works from the keyboard.
 
 ## Development
 
@@ -146,27 +172,71 @@ go vet ./...
 go build ./...
 ```
 
-Tests include the internal gocui suite and local HTTP/simulation-screen fixtures for mouse/key dispatch, modal behavior, saved-data migration, selection, and notification lifecycle. See [PORTING.md](PORTING.md) for the historical PF workflow and review record.
+The test suite covers the HTTP client, saved collections and migration, plus terminal interactions such as selection, dialogs, shortcuts, and notifications. It also runs the bundled gocui tests.
+
+### Refreshing Demo Media
+
+On macOS or Linux, install Go, Node.js 22 or newer, Expect, curl, asciinema 3, agg 1.9 or newer, and FFmpeg. From the repository root, run:
+
+```sh
+node scripts/record-demo.mjs
+```
+
+The script builds goman, starts a loopback-only sample API, and drives the app in a 120-column by 36-row terminal. It overwrites the recording, GIF preview, and two PNG screenshots in `docs/media`. Collections live in a temporary workspace that is removed afterward; your own `.goman` data isn't used. Fonts can change the rendered appearance between machines.
 
 ## Credits and License
 
-goman is a Go reimplementation derived from [Ghostman](https://github.com/4yk5/ghostman), created by [4yk5](https://github.com/4yk5). Credit for the original application, workflow, and visual design belongs to that project and its creator.
+goman is a Go rewrite of [Ghostman](https://github.com/4yk5/ghostman) by [4yk5](https://github.com/4yk5). The original application's workflow and visual design come from that project.
 
-The terminal UI contains an internal copy of the customized [gocui](https://github.com/jesseduffield/gocui) code supplied with [lazygit](https://github.com/jesseduffield/lazygit). There is no lazygit module dependency. Original authors and provenance are recorded in [internal/gocui/UPSTREAM.md](internal/gocui/UPSTREAM.md). Syntax highlighting uses [Chroma](https://github.com/alecthomas/chroma).
+The terminal UI uses the customized [gocui](https://github.com/jesseduffield/gocui) code from [lazygit](https://github.com/jesseduffield/lazygit), included in this repository. It doesn't depend on the lazygit module. See the [gocui provenance notes](internal/gocui/UPSTREAM.md) for its authors and local changes. Syntax highlighting uses [Chroma](https://github.com/alecthomas/chroma).
 
-goman is released under the [MIT License](LICENSE), retaining the original `Copyright (c) 2026 4yk5` notice. The internal gocui package retains its [BSD-3-Clause license](internal/gocui/LICENSE). Binary distributions must include both license notices.
+goman uses the [MIT License](LICENSE) and keeps the original `Copyright (c) 2026 4yk5` notice. The bundled gocui code uses the [BSD-3-Clause license](internal/gocui/LICENSE). Binary distributions must include both notices.
 
-## Releases
+## Installation
 
-Prebuilt binaries are published on [GitHub Releases](https://github.com/shoobyban/goman/releases) for macOS, Linux, and Windows, on amd64 and arm64. Unix downloads use `.tar.gz`; Windows downloads use `.zip`. Each archive includes the application and gocui license notices. Use the release's `checksums.txt` to verify downloads.
+Download a build from [GitHub Releases](https://github.com/shoobyban/goman/releases). macOS, Linux, and Windows builds are available for amd64 and arm64. Unix archives use `.tar.gz`; Windows archives use `.zip`. Unpack the archive and put the executable on your PATH. Both license notices are included.
 
-To publish version 0.1.0, first commit and push the release configuration and application changes, then tag that commit:
+Releases also include Debian packages and a Homebrew cask. Use `checksums.txt` to verify the binary archives and Debian packages. The examples below require a published `v0.1.0` release.
+
+### Debian and Ubuntu
+
+Download the `.deb` for your architecture, then install it with APT to resolve the CA-certificate dependency:
+
+```sh
+sudo apt install ./goman_0.1.0_linux_amd64.deb
+```
+
+On arm64, use the `linux_arm64.deb` file instead. If dependencies are already installed, you can use `sudo dpkg -i ./goman_0.1.0_linux_amd64.deb`.
+
+The package installs `/usr/bin/goman`. Installing or removing it leaves your workspace data alone.
+
+### Homebrew
+
+There isn't a hosted tap yet. Create a local tap once, then download the release's `goman.rb` cask into it:
+
+```sh
+brew tap-new goman/releases
+mkdir -p "$(brew --repository goman/releases)/Casks"
+curl --fail --location https://github.com/shoobyban/goman/releases/download/v0.1.0/goman.rb \
+  --output "$(brew --repository goman/releases)/Casks/goman.rb"
+brew install --cask goman/releases/goman
+```
+
+The cask chooses the archive for your architecture and checks its checksum. It links the binary without changing workspace data.
+
+To upgrade, download the new tag's `goman.rb` to the same location, then run `brew upgrade --cask goman/releases/goman`.
+
+## Publishing a Release
+
+Commit and push the changes first, then tag the commit:
 
 ```sh
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The CI and Release workflow runs formatting checks, vet, race tests, and a build on pull requests and pushes to `main`. Version-tag pushes run the same checks before GoReleaser builds all six archives and publishes the GitHub release with checksums. Only the publishing job has repository write permission; it uses the built-in `GITHUB_TOKEN`, with no additional release secret required.
+CI checks formatting, runs vet and race tests, and builds the app on pull requests and pushes to `main`. A version-tag push runs those checks before GoReleaser publishes six binary archives, two Debian packages, the Homebrew cask, and checksums.
 
-The CLI's `--version` output is set from the release tag. Local builds default to `0.1.0`. Generated release files live in the ignored `dist` directory.
+Only the publishing job has repository write permission. It uses the built-in `GITHUB_TOKEN`; no extra secret is needed. The cask is attached to the release, not pushed to a tap.
+
+Release builds take their `--version` value from the tag. Local builds default to `0.1.0`. Generated files go in `dist`, which is ignored by Git.

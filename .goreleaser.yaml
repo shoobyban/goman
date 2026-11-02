@@ -38,8 +38,47 @@ archives:
       - src: internal/gocui/UPSTREAM.md
         dst: licenses/gocui/UPSTREAM.md
 
+nfpms:
+  - id: debian
+    package_name: goman
+    homepage: https://github.com/shoobyban/goman
+    maintainer: shoobyban <shoobyban@users.noreply.github.com>
+    description: Terminal HTTP client and webhook inspector
+    license: MIT AND BSD-3-Clause
+    section: net
+    priority: optional
+    formats:
+      - deb
+    bindir: /usr/bin
+    dependencies:
+      - ca-certificates
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/goman/LICENSE
+      - src: README.md
+        dst: /usr/share/doc/goman/README.md
+      - src: internal/gocui/LICENSE
+        dst: /usr/share/doc/goman/licenses/gocui/LICENSE
+      - src: internal/gocui/AUTHORS
+        dst: /usr/share/doc/goman/licenses/gocui/AUTHORS
+      - src: internal/gocui/UPSTREAM.md
+        dst: /usr/share/doc/goman/licenses/gocui/UPSTREAM.md
+
+homebrew_casks:
+  - name: goman
+    repository:
+      owner: shoobyban
+      name: goman
+    homepage: https://github.com/shoobyban/goman
+    description: Terminal HTTP client and webhook inspector
+    skip_upload: true
+    binaries:
+      - goman
+
 checksum:
   name_template: checksums.txt
 
 release:
   name_template: "goman {{ .Tag }}"
+  extra_files:
+    - glob: dist/**/goman.rb
